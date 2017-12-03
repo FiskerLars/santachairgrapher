@@ -15,8 +15,11 @@ type Name = String
 data Author = Author {
   authorid   :: AuthorId,
   name :: Name
-  } deriving (Show, Read, Eq)
+  } deriving (Read, Eq, Ord)
 
 
 soupAuthor :: Html -> Author
 soupAuthor h = Author { authorid = fromAttrib "href" (head h), name = innerText h }
+
+instance Show Author where
+	show = name

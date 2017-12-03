@@ -14,10 +14,10 @@ parsePublicationsPage = map soupPubListElem
 
 
 soupPublicationTags:: Html -> Html
-soupPublicationTags = takeWhile (~/= "</tbody>")
-  . drop 1
+soupPublicationTags = drop 1
+  . takeWhile (~/= "</tbody>")
   . dropWhile (~/= "<tbody>")
-  . dropWhile (~/= "<table class=\"table sortable\">")
+  . dropWhile (~/= TagText "Publication")
 
 
 soupPubListRefsTags:: Html -> [Html]

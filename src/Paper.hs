@@ -25,17 +25,15 @@ data Paper = Paper {
 
 
 
-
-
 parsePaper :: PaperId -> String -> Paper
 parsePaper id  = (\h -> Paper { paperid = id , authors = soupAuthors h, title = soupTitle h, references = soupReferenceIDs h, paperState = soupPaperState h}).parseTags
 
   
 soupAuthors    :: Html -> [Author]
-soupAuthors = map soupAuthor
+soupAuthors = map (soupAuthor.takeWhile (~/= "</a>"))
   . sections (~== "<a>")
-  . takeWhile (~/= "<div class\"papercontent\">")
-  . dropWhile (~/= "<a href=\"http://santachair.offis.de/santachair/author")
+  . takeWhile (~/= TagText "Abstract")
+  . dropWhile (~/= "<span class=\"papertitle\">")
 
 
 {- input: whole Title -}
@@ -46,14 +44,20 @@ soupTitle =  innerText . take 2 . dropWhile (~/= "<span class=\"papertitle\">")
 
 {- input: whole Paper -}
 soupReferenceIDs :: Html -> [PaperId]
-soupReferenceIDs = map (soupReferenceId.takeWhile (~/= "</tr>"))
-  . sections (~== "<tr>")
+soupReferenceIDs = map (soupReferenceId.takeWhile (~/= "</li>"))
+  . sections (~== "<li>")
   . soupReferenceSection
 
 {- input: whole Paper -}
 soupReferenceSection :: Html -> Html 
-soupReferenceSection = takeWhile (~/= "</tbody>").drop 1.dropWhile (~/= "<tbody>")
-  . dropWhile (~/= "<center class=\"papersection\">")
+soupReferenceSection = concat
+  . map (takeWhile (~/= "</ul>").drop 1)
+  . sections (~== "<ul>")
+  . dropWhile (~/= TagText "References")
+
+  {- takeWhile (~/= "</tbody>").drop 1.dropWhile (~/= "<tbody>")
+  . dropWhile (~/= TagText "References")
+-}
 
 {- input: Paper-Reference table row -}
 soupReferenceId :: Html -> PaperId
